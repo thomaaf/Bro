@@ -244,7 +244,7 @@ func slave_transmit(slave_sender chan Slave_msg) {
 	slave_msg_to_send.Address = Local_ip
 	slave_msg_to_send.Internal_list = queue.Internal_order_list
 	slave_msg_to_send.External_list = queue.External_order_list
-	//slave_msg_to_send.Elevator_info = queue.Elev_info
+	slave_msg_to_send.Elevator_info = queue.My_info
 	fmt.Println("My external list is: ", queue.External_order_list)
 	slave_sender <- slave_msg_to_send
 	time.Sleep(1 * time.Second)
