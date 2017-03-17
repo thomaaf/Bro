@@ -33,28 +33,6 @@ type Slave_msg struct {
 	Elevator_info queue.Elev_info
 }
 
-func Choose_master() {
-	ip_addresses := queue.Elevators_online
-	highest_ip := 0
-	for i := 0; i < 2; i++ {
-		if ip_addresses[i].Elev_ip > highest_ip {
-			highest_ip = ip_addresses[i].Elev_ip
-		}
-	}
-	if Local_ip == highest_ip {
-		fmt.Println("I am the master.")
-		global.Is_master = true
-	} else {
-		fmt.Println("I am a slave.")
-		global.Is_master = false
-	}
-	if highest_ip == 0 {
-		fmt.Println("I have lost network")
-		global.Is_master = false
-		global.Lost_network = true
-	}
-}
-
 func Network_handler() {
 	var new_info peers.PeerUpdate
 
@@ -110,8 +88,58 @@ func Network_handler() {
 				Local_ip, _ = strconv.Atoi(local_ip[12:])
 				queue.My_info.Elev_ip = Local_ip
 				Choose_master()
+
+				if global.Is_master {
+					var lost_peer bool
+					var str_lost_ip string
+					var lost_ip int
+					// redeleger part 1
+					if len(new_info.Lost) == 1 {
+						lost_peer = true
+						str_lost_ip = new_info.Lost[0]
+						lost_ip, _ = strconv.Atoi(str_lost_ip[12:])
+					} else if len(new_info.Lost) != 0 {
+						fmt.Println("I just want to lose one person at a time, thank you.")
+						lost_peer = true
+						str_lost_ip = new_info.Lost[0]
+						lost_ip, _ = strconv.Atoi(str_lost_ip[12:])
+					}
+					//--------------
+					// redeleger part 2
+					if lost_peer {
+						for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+							if queue.Global_order_list[i].Assigned_to == lost_ip {
+								queue.Global_order_list[i] = queue.Delegate_order(queue.Global_order_list[i])
+							}
+						}
+					}
+					//---------------
+				}
 			}
 		}
+	}
+}
+func Choose_master() {
+
+	ip_addresses := queue.Elevators_online
+	highest_ip := 0
+	for i := 0; i < 2; i++ {
+		if ip_addresses[i].Elev_ip > highest_ip {
+			highest_ip = ip_addresses[i].Elev_ip
+		}
+	}
+	if Local_ip == highest_ip {
+		fmt.Println("I am the master.")
+		global.Is_master = true
+
+	} else {
+		fmt.Println("I am a slave.")
+		global.Is_master = false
+	}
+	if highest_ip == 0 {
+		fmt.Println("I have lost network")
+		global.Is_master = false
+		global.Lost_network = true
 	}
 }
 
@@ -205,6 +233,7 @@ func master_transmit(master_sender chan Master_msg) {
 	master_msg_to_send.Global_list = queue.Global_order_list
 	master_sender <- master_msg_to_send
 	fmt.Println("Master sent the global list: ", master_msg_to_send.Global_list)
+	fmt.Println("My external list is: ", queue.External_order_list)
 	time.Sleep(1 * time.Second)
 
 }
@@ -216,6 +245,7 @@ func slave_transmit(slave_sender chan Slave_msg) {
 	slave_msg_to_send.Internal_list = queue.Internal_order_list
 	slave_msg_to_send.External_list = queue.External_order_list
 	//slave_msg_to_send.Elevator_info = queue.Elev_info
+	fmt.Println("My external list is: ", queue.External_order_list)
 	slave_sender <- slave_msg_to_send
 	time.Sleep(1 * time.Second)
 
