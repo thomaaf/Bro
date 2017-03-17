@@ -266,9 +266,6 @@ func event_moving(update_order_chan chan queue.Order) {
 func event_door_open(update_order_chan chan queue.Order) {
 	fmt.Println("Running event: Door open.")
 
-	// Open door
-	driver.Open_door()
-	fmt.Println("Door opened.")
 	// - set button lamp off bør settes inn i update state funksjonen
 	driver.Set_button_lamp(current_order.Button, current_order.Floor, global.OFF) //-- can be moved to before open door
 	fmt.Println("Door open lamp set on.")
@@ -279,6 +276,10 @@ func event_door_open(update_order_chan chan queue.Order) {
 	// ---- hmhmhmhmmh
 	go queue.Order_to_update_order_chan(current_order, update_order_chan)
 	fmt.Println("Order sent on updated order chan.")
+
+	// Open door
+	fmt.Println("Door opened.")
+	driver.Open_door()
 
 	Elev_state = Idle // <- sette global state inne i funksjonen
 	queue.My_info.Elev_state = Elev_state
