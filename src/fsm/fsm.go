@@ -40,6 +40,11 @@ func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan b
 	fmt.Println("Running: State handler")
 	Elev_state = Idle
 	queue.My_info.Elev_state = Elev_state
+	for i := 0; i < global.Num_elev_online; i++ {
+		if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+			queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+		}
+	}
 
 	for {
 		switch Elev_state {
@@ -47,6 +52,11 @@ func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan b
 			event_idle(new_order_bool_chan, new_global_order_bool_chan)
 			Elev_state = Moving
 			queue.My_info.Elev_state = Elev_state
+			for i := 0; i < global.Num_elev_online; i++ {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+				}
+			}
 			//elev_state = Moving
 		case Moving:
 			event_moving(update_order_chan)
@@ -154,7 +164,7 @@ func event_idle(new_order_bool_chan chan bool, new_global_order_bool_chan chan b
 				}
 
 				// THIS IS NEW
-				if global.Lost_network == true {
+				if global.Lost_network == true || global.Num_elev_online == 1 {
 					for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 						if queue.Global_order_list[i].Order_state != queue.Inactive {
 							if queue.Global_order_list[i].Order_state != queue.Finished {
@@ -215,7 +225,7 @@ func event_idle(new_order_bool_chan chan bool, new_global_order_bool_chan chan b
 				}
 
 				// THIS IS NEW
-				if global.Lost_network == true {
+				if global.Lost_network == true || global.Num_elev_online == 1 {
 					for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 						if queue.Global_order_list[i].Order_state != queue.Inactive {
 							if queue.Global_order_list[i].Order_state != queue.Finished {
@@ -272,6 +282,11 @@ func event_door_open(update_order_chan chan queue.Order) {
 
 	Elev_state = Idle // <- sette global state inne i funksjonen
 	queue.My_info.Elev_state = Elev_state
+	for i := 0; i < global.Num_elev_online; i++ {
+		if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+			queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+		}
+	}
 }
 
 func elevator_to_floor(update_order_chan chan queue.Order) {
@@ -286,10 +301,20 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 		if !timeout_between_floors {
 			//Dir = global.DIR_UP
 			queue.My_info.Elev_dir = global.DIR_UP
+			for i := 0; i < global.Num_elev_online; i++ {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
+				}
+			}
 			driver.Set_motor_direction(global.DIR_UP)
 		} else if timeout_between_floors {
 			//Dir = global.DIR_DOWN
 			queue.My_info.Elev_dir = global.DIR_DOWN
+			for i := 0; i < global.Num_elev_online; i++ {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
+				}
+			}
 			driver.Set_motor_direction(global.DIR_DOWN)
 		}
 	}
@@ -311,6 +336,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 		fmt.Println("Going up.")
 		//Dir = global.DIR_UP
 		queue.My_info.Elev_dir = global.DIR_UP
+		for i := 0; i < global.Num_elev_online; i++ {
+			if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+				queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
+			}
+		}
 		driver.Set_motor_direction(global.DIR_UP)
 
 		for driver.Get_floor_sensor_signal() != floor_int {
@@ -321,6 +351,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 				//fmt.Println("Floor sensor signal is not equal to minus one.")
 				this_floor := driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
 				queue.My_info.Elev_last_floor = this_floor
+				for i := 0; i < global.Num_elev_online; i++ {
+					if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+						queue.Elevators_online[i].Elev_last_floor = queue.My_info.Elev_last_floor
+					}
+				}
 				driver.Set_floor_indicator_lamp(this_floor)
 				//pick_up_order_on_the_way(current_floor, order_list, updated_order_chan, current_order)
 				//time.Sleep(10 * time.Millisecond)
@@ -333,6 +368,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 					//fmt.Println("Setting state to door open.")
 					Elev_state = Door_open
 					queue.My_info.Elev_state = Elev_state
+					for i := 0; i < global.Num_elev_online; i++ {
+						if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+							queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+						}
+					}
 					break
 				}
 				time.Sleep(10 * time.Millisecond)
@@ -340,6 +380,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 			} else if timeout {
 				Elev_state = Stuck
 				queue.My_info.Elev_state = Elev_state
+				for i := 0; i < global.Num_elev_online; i++ {
+					if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+						queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+					}
+				}
 				break
 			}
 		}
@@ -348,6 +393,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 		fmt.Println("Going down.")
 		//Dir = global.DIR_DOWN
 		queue.My_info.Elev_dir = global.DIR_DOWN
+		for i := 0; i < global.Num_elev_online; i++ {
+			if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+				queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
+			}
+		}
 		driver.Set_motor_direction(global.DIR_DOWN)
 
 		for driver.Get_floor_sensor_signal() != floor_int {
@@ -357,6 +407,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 			if driver.Get_floor_sensor_signal() != -1 {
 				this_floor := driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
 				queue.My_info.Elev_last_floor = this_floor
+				for i := 0; i < global.Num_elev_online; i++ {
+					if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+						queue.Elevators_online[i].Elev_last_floor = queue.My_info.Elev_last_floor
+					}
+				}
 				driver.Set_floor_indicator_lamp(this_floor)
 				//pick_up_order_on_the_way(current_floor, order_list, updated_order_chan, current_order)
 				//time.Sleep(10 * time.Millisecond)
@@ -365,6 +420,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 				if is_order {
 					Elev_state = Door_open
 					queue.My_info.Elev_state = Elev_state
+					for i := 0; i < global.Num_elev_online; i++ {
+						if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+							queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+						}
+					}
 					break
 				}
 				time.Sleep(10 * time.Millisecond)
@@ -372,6 +432,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 			} else if timeout {
 				Elev_state = Stuck
 				queue.My_info.Elev_state = Elev_state
+				for i := 0; i < global.Num_elev_online; i++ {
+					if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+						queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+					}
+				}
 				break
 			}
 		}
@@ -379,9 +444,19 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 		if current_order.Order_state == queue.Inactive || current_order.Order_state == queue.Finished {
 			Elev_state = Idle
 			queue.My_info.Elev_state = Elev_state
+			for i := 0; i < global.Num_elev_online; i++ {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+				}
+			}
 		} else {
 			Elev_state = Door_open
 			queue.My_info.Elev_state = Elev_state
+			for i := 0; i < global.Num_elev_online; i++ {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
+				}
+			}
 			// was idle before, but it should open the door if it's in the same floor
 			// must delete the order somewhere, atm it's a loop
 		}
@@ -390,6 +465,11 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 	// Stop when at desired floor
 	//Dir = global.DIR_STOP
 	queue.My_info.Elev_dir = global.DIR_STOP
+	for i := 0; i < global.Num_elev_online; i++ {
+		if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+			queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
+		}
+	}
 	driver.Set_motor_direction(global.DIR_STOP)
 }
 
