@@ -15,11 +15,14 @@ import (
 	"ordermanager"
 	"queue"
 	//"time"
+	"global"
 )
 
 func main() {
 	driver.Elevator_init()
 	driver.Elevator_init()
+
+	global.Iter = 0
 
 	new_order_chan := make(chan queue.Order, 10) //Er buffra til 10 for da får alle mulig ebestillinger plass
 	updated_order_chan := make(chan queue.Order, 10)
