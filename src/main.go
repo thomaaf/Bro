@@ -20,24 +20,23 @@ import (
 
 func main() {
 	driver.Elevator_init()
-	driver.Elevator_init()
 
 	global.Iter = 0
 
 	new_order_chan := make(chan queue.Order, 10) //Er buffra til 10 for da får alle mulig ebestillinger plass
 	updated_order_chan := make(chan queue.Order, 10)
-	updated_order_bool_chan := make(chan bool)
-	new_order_bool_chan := make(chan bool)
+	updated_order_bool_chan := make(chan bool, 100)
+	new_order_bool_chan := make(chan bool, 100)
 
 	// --
-	new_global_order_bool_chan := make(chan bool)
+	new_global_order_bool_chan := make(chan bool, 100)
 
 	go fsm.State_handler(new_order_bool_chan, updated_order_bool_chan, updated_order_chan, new_global_order_bool_chan)
 	go queue.Order_handler(new_order_bool_chan, new_order_chan, updated_order_chan, new_global_order_bool_chan)
 	go ordermanager.Button_handler(new_order_chan)
 
 	// test network
-	go network.Network_handler()
+	go network.Network_handler(new_global_order_bool_chan)
 	//time.Sleep(4*time.Second)
 	go network.Network_sender(new_order_bool_chan, new_order_chan)
 	go network.Network_receiver(new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
