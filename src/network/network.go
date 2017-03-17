@@ -325,7 +325,12 @@ func Slave_msg_handler(msg_from_master Master_msg, new_order_bool_chan chan bool
 	//Sjekker om noen bestillinger er assigna til seg selv og deretter at den ikke har state Inactive eller Finished
 	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 		if global_order_list[i].Assigned_to == my_ip && global_order_list[i].Order_state != queue.Inactive && global_order_list[i].Order_state != queue.Finished {
-			queue.Add_new_external_order(global_order_list[i], new_order_bool_chan, new_order_chan, new_global_order_bool_chan) // Bør kanskje kjøres som en go func?? Litt usikker
+			for j := 0; j < global.NUM_GLOBAL_ORDERS; j++ {
+				if global_order_list[i].Button == queue.External_order_list[j].Button && global_order_list[i].Floor == queue.External_order_list[j].Floor && queue.External_order_list[j].Order_state != queue.Finished {
+					queue.Add_new_external_order(global_order_list[i], new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
+				}
+			}
+			// Bør kanskje kjøres som en go func?? Litt usikker
 		}
 		// Skru på lamper på alle ordre som ikke er inaktiv eller finished
 		if global_order_list[i].Order_state != queue.Inactive && global_order_list[i].Order_state != queue.Finished {
