@@ -494,6 +494,11 @@ func check_if_order_in_floor(floor global.Floor_t) bool {
 	}
 	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 		if queue.External_order_list[i].Floor == floor {
+			if queue.External_order_list[i].Button == global.BUTTON_UP && queue.My_info.Elev_dir == global.DIR_DOWN {
+				return false
+			} else if queue.External_order_list[i].Button == global.BUTTON_DOWN && queue.My_info.Elev_dir == global.DIR_UP {
+				return false
+			}
 			if queue.External_order_list[i].Order_state != queue.Inactive && queue.External_order_list[i].Order_state != queue.Finished {
 				current_order = queue.External_order_list[i]
 				return true
