@@ -42,10 +42,11 @@ const (
 type Motor_direction_t int
 
 const (
-	DIR_DOWN = -1 << iota
-	DIR_STOP
-	DIR_UP
+	DIR_DOWN = -1
+	DIR_STOP = 0
+	DIR_UP   = 1
 )
+
 
 const (
 	NONE = iota
