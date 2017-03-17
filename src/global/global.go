@@ -15,6 +15,7 @@ var Lost_network bool
 
 var Is_master bool
 var Num_elev_online int
+var Iter int
 
 const (
 	BUTTON_UP = iota
