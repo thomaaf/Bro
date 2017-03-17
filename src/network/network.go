@@ -235,7 +235,7 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 	queue.Elevators_online[num].Elev_state = msg_from_slave.Elevator_info.Elev_state
 	external_order_list := msg_from_slave.External_list
 	//internal_order_list := msg_from_slave.Internal_list
-
+	fmt.Println("Master 1")
 	//Sjekke etter nye bestillinger
 	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 		if external_order_list[i].Assigned_to == 0 && external_order_list[i].Order_state != queue.Finished && external_order_list[i].Order_state != queue.Inactive {
@@ -247,7 +247,7 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 
 		}
 	}
-
+	fmt.Println("Master 2")
 	//Sjekke etter endrede bestillinger
 	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 		for j := 0; j < global.NUM_GLOBAL_ORDERS; j++ {
@@ -262,6 +262,20 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 			} else {
 				driver.Set_button_lamp(queue.Global_order_list[i].Button, queue.Global_order_list[i].Floor, global.OFF)
 			}
+		}
+	}
+	fmt.Println("Master 3")
+	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+		if queue.Global_order_list[i].Assigned_to == Local_ip && queue.Global_order_list[i].Order_state != queue.Inactive && queue.Global_order_list[i].Order_state != queue.Finished {
+			fmt.Println("Adding new order to external from within master msg loop")
+			fmt.Println("My new order bll", queue.Global_order_list[i])
+			queue.Add_new_external_order(queue.Global_order_list[i], new_order_bool_chan, new_order_chan, new_global_order_bool_chan) // Bør kanskje kjøres som en go func?? Litt usikker
+		}
+		// Skru på lamper på alle ordre som ikke er inaktiv eller finished
+		if queue.Global_order_list[i].Order_state != queue.Inactive && queue.Global_order_list[i].Order_state != queue.Finished {
+			driver.Set_button_lamp(queue.Global_order_list[i].Button, queue.Global_order_list[i].Floor, global.ON)
+		} else {
+			driver.Set_button_lamp(queue.Global_order_list[i].Button, queue.Global_order_list[i].Floor, global.OFF)
 		}
 	}
 }
