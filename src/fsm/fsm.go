@@ -154,7 +154,7 @@ func event_idle(new_order_bool_chan chan bool, new_global_order_bool_chan chan b
 				}
 
 				// THIS IS NEW
-				if global.Lost_network == true || global.Num_elev_online == 1 {
+				if global.Lost_network == true {
 					for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 						if queue.Global_order_list[i].Order_state != queue.Inactive {
 							if queue.Global_order_list[i].Order_state != queue.Finished {
@@ -215,7 +215,7 @@ func event_idle(new_order_bool_chan chan bool, new_global_order_bool_chan chan b
 				}
 
 				// THIS IS NEW
-				if global.Lost_network == true || global.Num_elev_online == 1 {
+				if global.Lost_network == true {
 					for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 						if queue.Global_order_list[i].Order_state != queue.Inactive {
 							if queue.Global_order_list[i].Order_state != queue.Finished {

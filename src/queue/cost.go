@@ -23,8 +23,10 @@ func compare_cost(online_elev_info_list [global.NUM_ELEV]Elev_info, new_order Or
 	var best_suited_elevator Elev_info
 
 	for i := 0; i < global.Num_elev_online; i++ {
-		cost := calculate_cost(new_order)
-		fmt.Println("Online elev info i: ", online_elev_info_list[i])
+		fmt.Println("-- Start -- Online elev info ", i, online_elev_info_list[i])
+		num := i
+		cost := calculate_cost(new_order, num)
+		fmt.Println("The cost for this one is: ", cost)
 		fmt.Println("Online elev ip is now: ", online_elev_info_list[i].Elev_ip)
 
 		if cost == -2 {
@@ -42,57 +44,59 @@ func compare_cost(online_elev_info_list [global.NUM_ELEV]Elev_info, new_order Or
 	return best_suited_elevator
 }
 
-func calculate_cost(new_order Order) int {
+func calculate_cost(new_order Order, num int) int {
 	cost := 0
 
 	if elevator_is_idle() {
+		fmt.Println("I got nothing to do srsly..")
 		cost = -2
 		return cost
 	} else {
-		cost += order_cost()
-		cost += direction_cost(new_order.Floor)
-		cost += floor_cost(new_order.Floor)
+		//cost += order_cost()
+		cost += direction_cost(new_order.Floor, num)
+		cost += floor_cost(new_order.Floor, num)
 	}
 	return cost
 }
 
 func elevator_is_idle() bool {
 	for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
-		if Internal_order_list[i].Order_state != Inactive {
+		if Internal_order_list[i].Order_state != Inactive && Internal_order_list[i].Order_state != Finished {
 			return false
 		}
 	}
 	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
-		if External_order_list[i].Order_state != Inactive {
+		if External_order_list[i].Order_state != Inactive && External_order_list[i].Order_state != Finished {
 			return false
 		}
 	}
 	return true
 }
 
-func order_cost() int {
+/*func order_cost() int {
 	order_cost := 0
 	for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
-		if Internal_order_list[i].Order_state != Inactive {
-			order_cost += 2
+		if Internal_order_list[i].Order_state != Inactive && Internal_order_list[i].Order_state != Finished {
+			order_cost = order_cost + 2
 		}
 	}
 	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
-		if External_order_list[i].Order_state != Inactive {
-			order_cost += 2
+		if External_order_list[i].Order_state != Inactive && External_order_list[i].Order_state != Finished {
+			order_cost = order_cost + 2
 		}
 	}
+	fmt.Println("The order cost is: ", order_cost)
 	return order_cost
-}
+}*/
 
 // Add 3 points for wrong direction and -1 for right direction
-func direction_cost(order_floor global.Floor_t) int {
+func direction_cost(order_floor global.Floor_t, num int) int {
 	direction_cost := 0
-	direction := My_info.Elev_dir
+	direction := Elevators_online[num].Elev_dir
 
 	switch direction {
 	case global.DIR_DOWN:
-		if order_floor < My_info.Elev_last_floor {
+		if order_floor < Elevators_online[num].Elev_last_floor {
 			//Elevator is going down, destination is lower than current floor
 			direction_cost = -1
 		} else {
@@ -101,7 +105,7 @@ func direction_cost(order_floor global.Floor_t) int {
 		}
 
 	case global.DIR_UP:
-		if order_floor > My_info.Elev_last_floor {
+		if order_floor > Elevators_online[num].Elev_last_floor {
 			//Elevator going up, destination is higher than current floor
 			direction_cost = -1
 		} else {
@@ -109,19 +113,19 @@ func direction_cost(order_floor global.Floor_t) int {
 			direction_cost = 3
 		}
 	}
-
+	fmt.Println("The direction cost is: ", direction_cost)
 	return direction_cost
 }
 
 // Add 2 points for each floor between the elevator and the order
-func floor_cost(order_floor global.Floor_t) int {
+func floor_cost(order_floor global.Floor_t, num int) int {
 	floor_cost := 0
 
-	if My_info.Elev_last_floor < order_floor {
-		floor_cost = 2 * (driver.Floor_t_to_floor_int(order_floor) - driver.Floor_t_to_floor_int(My_info.Elev_last_floor) - 1)
+	if Elevators_online[num].Elev_last_floor < order_floor {
+		floor_cost = 2 * (driver.Floor_t_to_floor_int(order_floor) - driver.Floor_t_to_floor_int(Elevators_online[num].Elev_last_floor) - 1)
 	} else {
-		floor_cost = (-2) * (driver.Floor_t_to_floor_int(order_floor) - driver.Floor_t_to_floor_int(My_info.Elev_last_floor) + 1)
+		floor_cost = (2) * (driver.Floor_t_to_floor_int(Elevators_online[num].Elev_last_floor) + 1 - driver.Floor_t_to_floor_int(order_floor))
 	}
-
+	fmt.Println("The floor cost is: ", floor_cost)
 	return floor_cost
 }
