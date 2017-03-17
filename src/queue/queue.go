@@ -220,6 +220,9 @@ func Add_new_external_order(new_order Order, new_order_bool_chan chan bool, new_
 			if new_order.Assigned_to == My_info.Elev_ip {
 				External_order_list[i].Assigned_to = new_order.Assigned_to
 				Update_state(External_order_list[i])
+				// NEW
+				go Bool_to_new_order_channel(true, new_order_bool_chan)
+				//
 			}
 		} else if External_order_list[i].Floor == new_order_floor && External_order_list[i].Button == new_order_button {
 			fmt.Println("The order is already in the external order list.", External_order_list[i])
