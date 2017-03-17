@@ -307,6 +307,7 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 			fmt.Println("Adding new order to external from within master msg loop")
 			fmt.Println("My new order bll", queue.Global_order_list[i])
 			queue.Add_new_external_order(queue.Global_order_list[i], new_order_bool_chan, new_order_chan, new_global_order_bool_chan) // Bør kanskje kjøres som en go func?? Litt usikker
+			queue.Bool_to_new_global_order_chan(true, new_global_order_bool_chan)
 		}
 		// Skru på lamper på alle ordre som ikke er inaktiv eller finished
 		if queue.Global_order_list[i].Order_state != queue.Inactive && queue.Global_order_list[i].Order_state != queue.Finished {
