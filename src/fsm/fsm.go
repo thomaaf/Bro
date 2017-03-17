@@ -41,7 +41,7 @@ func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan b
 	Elev_state = Idle
 	queue.My_info.Elev_state = Elev_state
 	for i := 0; i < global.Num_elev_online; i++ {
-		if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+		if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 			queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 		}
 	}
@@ -53,7 +53,7 @@ func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan b
 			Elev_state = Moving
 			queue.My_info.Elev_state = Elev_state
 			for i := 0; i < global.Num_elev_online; i++ {
-				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 					queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 				}
 			}
@@ -283,7 +283,7 @@ func event_door_open(update_order_chan chan queue.Order) {
 	Elev_state = Idle // <- sette global state inne i funksjonen
 	queue.My_info.Elev_state = Elev_state
 	for i := 0; i < global.Num_elev_online; i++ {
-		if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+		if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 			queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 		}
 	}
@@ -302,7 +302,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 			//Dir = global.DIR_UP
 			queue.My_info.Elev_dir = global.DIR_UP
 			for i := 0; i < global.Num_elev_online; i++ {
-				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 					queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
 				}
 			}
@@ -311,7 +311,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 			//Dir = global.DIR_DOWN
 			queue.My_info.Elev_dir = global.DIR_DOWN
 			for i := 0; i < global.Num_elev_online; i++ {
-				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 					queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
 				}
 			}
@@ -337,7 +337,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 		//Dir = global.DIR_UP
 		queue.My_info.Elev_dir = global.DIR_UP
 		for i := 0; i < global.Num_elev_online; i++ {
-			if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+			if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 				queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
 			}
 		}
@@ -352,7 +352,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 				this_floor := driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
 				queue.My_info.Elev_last_floor = this_floor
 				for i := 0; i < global.Num_elev_online; i++ {
-					if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 						queue.Elevators_online[i].Elev_last_floor = queue.My_info.Elev_last_floor
 					}
 				}
@@ -369,7 +369,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 					Elev_state = Door_open
 					queue.My_info.Elev_state = Elev_state
 					for i := 0; i < global.Num_elev_online; i++ {
-						if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+						if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 							queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 						}
 					}
@@ -381,7 +381,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 				Elev_state = Stuck
 				queue.My_info.Elev_state = Elev_state
 				for i := 0; i < global.Num_elev_online; i++ {
-					if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 						queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 					}
 				}
@@ -394,7 +394,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 		//Dir = global.DIR_DOWN
 		queue.My_info.Elev_dir = global.DIR_DOWN
 		for i := 0; i < global.Num_elev_online; i++ {
-			if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+			if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 				queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
 			}
 		}
@@ -408,7 +408,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 				this_floor := driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
 				queue.My_info.Elev_last_floor = this_floor
 				for i := 0; i < global.Num_elev_online; i++ {
-					if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 						queue.Elevators_online[i].Elev_last_floor = queue.My_info.Elev_last_floor
 					}
 				}
@@ -421,7 +421,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 					Elev_state = Door_open
 					queue.My_info.Elev_state = Elev_state
 					for i := 0; i < global.Num_elev_online; i++ {
-						if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+						if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 							queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 						}
 					}
@@ -433,7 +433,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 				Elev_state = Stuck
 				queue.My_info.Elev_state = Elev_state
 				for i := 0; i < global.Num_elev_online; i++ {
-					if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+					if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 						queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 					}
 				}
@@ -445,7 +445,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 			Elev_state = Idle
 			queue.My_info.Elev_state = Elev_state
 			for i := 0; i < global.Num_elev_online; i++ {
-				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 					queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 				}
 			}
@@ -453,7 +453,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 			Elev_state = Door_open
 			queue.My_info.Elev_state = Elev_state
 			for i := 0; i < global.Num_elev_online; i++ {
-				if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+				if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 					queue.Elevators_online[i].Elev_state = queue.My_info.Elev_state
 				}
 			}
@@ -466,7 +466,7 @@ func elevator_to_floor(update_order_chan chan queue.Order) {
 	//Dir = global.DIR_STOP
 	queue.My_info.Elev_dir = global.DIR_STOP
 	for i := 0; i < global.Num_elev_online; i++ {
-		if queue.My_info.Elev_ip == queue.Elevators_online[i] {
+		if queue.My_info.Elev_ip == queue.Elevators_online[i].Elev_ip {
 			queue.Elevators_online[i].Elev_dir = queue.My_info.Elev_dir
 		}
 	}
