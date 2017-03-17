@@ -26,15 +26,18 @@ func main() {
 	updated_order_bool_chan := make(chan bool)
 	new_order_bool_chan := make(chan bool)
 
-	go fsm.State_handler(new_order_bool_chan, updated_order_bool_chan, updated_order_chan)
-	go queue.Order_handler(new_order_bool_chan, new_order_chan, updated_order_chan)
+	// --
+	new_global_order_bool_chan := make(chan bool)
+
+	go fsm.State_handler(new_order_bool_chan, updated_order_bool_chan, updated_order_chan, new_global_order_bool_chan)
+	go queue.Order_handler(new_order_bool_chan, new_order_chan, updated_order_chan, new_global_order_bool_chan)
 	go ordermanager.Button_handler(new_order_chan)
 
 	// test network
 	go network.Network_handler()
 	//time.Sleep(4*time.Second)
 	go network.Network_sender(new_order_bool_chan, new_order_chan)
-	go network.Network_receiver(new_order_bool_chan, new_order_chan)
+	go network.Network_receiver(new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
 
 	fmt.Println("I am ready")
 

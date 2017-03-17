@@ -108,13 +108,14 @@ func Network_handler() {
 
 				}
 				Local_ip, _ = strconv.Atoi(local_ip[12:])
+				queue.My_info.Elev_ip = Local_ip
 				Choose_master()
 			}
 		}
 	}
 }
 
-func Network_receiver(new_order_bool_chan chan bool, new_order_chan chan queue.Order) {
+func Network_receiver(new_order_bool_chan chan bool, new_order_chan chan queue.Order, new_global_order_bool_chan chan bool) {
 	var receive_port int
 
 	slave_receiver := make(chan Master_msg)
@@ -132,7 +133,7 @@ func Network_receiver(new_order_bool_chan chan bool, new_order_chan chan queue.O
 					msg_from_slave := catch_msg_from_slave
 					fmt.Println("Master received : ", catch_msg_from_slave)
 
-					Master_msg_handler(msg_from_slave, new_order_bool_chan, new_order_chan)
+					Master_msg_handler(msg_from_slave, new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
 					//queue.Master_msg_handler(catch_msg_from_slave)
 				}
 				if global.Is_master == false {
@@ -149,7 +150,7 @@ func Network_receiver(new_order_bool_chan chan bool, new_order_chan chan queue.O
 				select {
 				case catch_msg_from_master := <-slave_receiver:
 					msg_from_master := catch_msg_from_master
-					Slave_msg_handler(msg_from_master, new_order_bool_chan, new_order_chan)
+					Slave_msg_handler(msg_from_master, new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
 					fmt.Println("Slave received : ", catch_msg_from_master)
 					//queue.Slave_msg_handler(catch_msg_from_master, new_order_bool_chan)
 				}
@@ -220,7 +221,8 @@ func slave_transmit(slave_sender chan Slave_msg) {
 
 }
 
-func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool, new_order_chan chan queue.Order) {
+//--
+func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool, new_order_chan chan queue.Order, new_global_order_bool_chan chan bool) {
 	var num int
 	for i := 0; i < global.Num_elev_online; i++ {
 		if queue.Elevators_online[i].Elev_ip == msg_from_slave.Elevator_info.Elev_ip {
@@ -240,7 +242,9 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 			//If noone ownes it, it must be a new order, and it is not finished or inactive
 			new_order := external_order_list[i]
 			new_order = queue.Delegate_order(new_order)
-			queue.Add_new_global_order(new_order, new_order_bool_chan, new_order_chan)
+			//--
+			queue.Add_new_global_order(new_order, new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
+
 		}
 	}
 
@@ -262,7 +266,7 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 	}
 }
 
-func Slave_msg_handler(msg_from_master Master_msg, new_order_bool_chan chan bool, new_order_chan chan queue.Order) {
+func Slave_msg_handler(msg_from_master Master_msg, new_order_bool_chan chan bool, new_order_chan chan queue.Order, new_global_order_bool_chan chan bool) {
 	my_ip := Local_ip
 	//master_ip := msg_from_master.Address ---- Do we really need this?
 	global_order_list := msg_from_master.Global_list
@@ -270,7 +274,7 @@ func Slave_msg_handler(msg_from_master Master_msg, new_order_bool_chan chan bool
 	//Sjekker om noen bestillinger er assigna til seg selv og deretter at den ikke har state Inactive eller Finished
 	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 		if global_order_list[i].Assigned_to == my_ip && global_order_list[i].Order_state != queue.Inactive && global_order_list[i].Order_state != queue.Finished {
-			queue.Add_new_external_order(global_order_list[i], new_order_bool_chan, new_order_chan) // Bør kanskje kjøres som en go func?? Litt usikker
+			queue.Add_new_external_order(global_order_list[i], new_order_bool_chan, new_order_chan, new_global_order_bool_chan) // Bør kanskje kjøres som en go func?? Litt usikker
 		}
 		// Skru på lamper på alle ordre som ikke er inaktiv eller finished
 		if global_order_list[i].Order_state != queue.Inactive && global_order_list[i].Order_state != queue.Finished {

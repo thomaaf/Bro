@@ -36,7 +36,7 @@ var Elev_state int
 var current_order queue.Order
 var Empty_list bool
 
-func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan bool, update_order_chan chan queue.Order) {
+func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan bool, update_order_chan chan queue.Order, new_global_order_bool_chan chan bool) {
 	fmt.Println("Running: State handler")
 	Elev_state = Idle
 	queue.My_info.Elev_state = Elev_state
@@ -44,7 +44,7 @@ func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan b
 	for {
 		switch Elev_state {
 		case Idle:
-			event_idle(new_order_bool_chan)
+			event_idle(new_order_bool_chan, new_global_order_bool_chan)
 			Elev_state = Moving
 			queue.My_info.Elev_state = Elev_state
 			//elev_state = Moving
@@ -64,7 +64,7 @@ func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan b
 	}
 }
 
-func event_idle(new_order_bool_chan chan bool) {
+func event_idle(new_order_bool_chan chan bool, new_global_order_bool_chan chan bool) {
 	fmt.Println("Running event: Idle.")
 	order_exist := false
 	fmt.Println("Current order is before", current_order)
@@ -117,6 +117,67 @@ func event_idle(new_order_bool_chan chan bool) {
 	if order_exist == false {
 		select {
 		case <-new_order_bool_chan:
+			var this_order queue.Order
+			new_order_Assigned_to_me := false
+			//fmt.Println("Got new order bool ", catch_new_order_bool, " in Idle.")
+			//fmt.Println("Now checking for orders that needs to be done inside the select case in event_idle")
+			fmt.Println("Current order is", current_order)
+			for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
+				if queue.Internal_order_list[i].Order_state != queue.Inactive {
+					if queue.Internal_order_list[i].Order_state != queue.Finished {
+
+						fmt.Println("The current order is internal---------------------------------------")
+						//current_order = queue.Internal_order_list[i]
+						this_order = queue.Internal_order_list[i]
+						current_order = this_order
+						fmt.Println("This order is: ", this_order)
+						new_order_Assigned_to_me = true
+
+						break
+					}
+				}
+				if new_order_Assigned_to_me == true {
+					Empty_list = false
+					break
+				}
+
+			}
+			for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+				if queue.External_order_list[i].Order_state != queue.Inactive {
+					if queue.External_order_list[i].Order_state != queue.Finished {
+						if queue.External_order_list[i].Assigned_to == network.Local_ip || global.Num_elev_online == 0 {
+							fmt.Println(queue.External_order_list[i].Assigned_to, "is equal to", network.Local_ip, "-----------------", "network.Num_elev_onlibe", global.Num_elev_online)
+							current_order = queue.External_order_list[i]
+							new_order_Assigned_to_me = true
+						}
+					}
+				}
+
+				// THIS IS NEW
+				if global.Lost_network == true {
+					for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+						if queue.Global_order_list[i].Order_state != queue.Inactive {
+							if queue.Global_order_list[i].Order_state != queue.Finished {
+								fmt.Println("Taking all the global orders since i'm alone")
+								current_order = queue.Global_order_list[i]
+								order_exist = true
+								Empty_list = false
+								break
+							}
+						}
+					}
+				}
+
+			}
+			// END NEW
+
+			if new_order_Assigned_to_me == true {
+				fmt.Println("The order is assigned to me, I'll take it.")
+				Empty_list = false
+				break
+			}
+
+		case <-new_global_order_bool_chan:
 			var this_order queue.Order
 			new_order_Assigned_to_me := false
 			//fmt.Println("Got new order bool ", catch_new_order_bool, " in Idle.")

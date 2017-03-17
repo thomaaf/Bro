@@ -48,6 +48,10 @@ func Bool_to_new_order_channel(value bool, new_order_bool_chan chan bool) {
 	new_order_bool_chan <- value
 }
 
+func Bool_to_new_global_order_chan(value bool, new_global_bool_chan chan bool) {
+	new_global_bool_chan <- value
+}
+
 //Disse bør brukes/er blitt endret på:
 /*func Bool_to_updated_order_channel(value bool, updated_order_bool_chan chan bool) {
 	updated_order_bool_chan <- value
@@ -64,7 +68,7 @@ func Order_to_new_order_chan(order Order, new_order_chan chan Order) {
 	new_order_chan <- order
 }
 
-func Order_handler(new_order_bool_chan chan bool, new_order_chan chan Order, update_order_chan chan Order) {
+func Order_handler(new_order_bool_chan chan bool, new_order_chan chan Order, update_order_chan chan Order, new_global_order_bool_chan chan bool) {
 	fmt.Println("Running: Order handler")
 	for {
 		select {
@@ -76,7 +80,7 @@ func Order_handler(new_order_bool_chan chan bool, new_order_chan chan Order, upd
 				fmt.Println("New order added to Internal order list. The list is now: ", Internal_order_list)
 
 			} else {
-				Add_new_external_order(new_order, new_order_bool_chan, new_order_chan)
+				Add_new_external_order(new_order, new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
 				fmt.Println("New order added to External order list. The list is now: ", External_order_list)
 
 			}
@@ -189,7 +193,9 @@ func Add_new_internal_order(new_order Order, new_order_bool_chan chan bool) {
 	}
 }
 
-func Add_new_external_order(new_order Order, new_order_bool_chan chan bool, new_order_chan chan Order) {
+func Add_new_external_order(new_order Order, new_order_bool_chan chan bool, new_order_chan chan Order, new_global_order_bool_chan chan bool) {
+	fmt.Println("Adder new order fra master")
+	fmt.Println("I am the master", global.Is_master)
 	new_order_floor := new_order.Floor
 	new_order_button := new_order.Button
 
@@ -197,18 +203,21 @@ func Add_new_external_order(new_order Order, new_order_bool_chan chan bool, new_
 		if External_order_list[i].Order_state == Inactive || External_order_list[i].Order_state == Finished {
 			External_order_list[i] = new_order
 			fmt.Println("New external order was added!")
+			fmt.Println(My_info.Elev_ip, "this is my IP yo")
 			if new_order.Assigned_to == My_info.Elev_ip {
+				fmt.Println("The order was for meeee")
 				go Bool_to_new_order_channel(true, new_order_bool_chan)
 			}
 			if global.Is_master == true && new_order.Assigned_to == 0 {
+				fmt.Println("just for fun. delegating order.", global.Is_master)
 				new_order = Delegate_order(new_order)
-				Add_new_global_order(new_order, new_order_bool_chan, new_order_chan)
+				Add_new_global_order(new_order, new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
 
 			}
 			break
 		}
 		if External_order_list[i].Floor == new_order_floor && External_order_list[i].Button == new_order_button {
-			fmt.Println("The order is already in the global order list.", External_order_list[i])
+			fmt.Println("The order is already in the external order list.", External_order_list[i])
 			//go Order_to_new_order_chan(new_order, new_order_chan)
 			break
 		}
@@ -219,7 +228,8 @@ func Add_new_external_order(new_order Order, new_order_bool_chan chan bool, new_
 
 }
 
-func Add_new_global_order(new_order Order, new_order_bool_chan chan bool, new_order_chan chan Order) {
+//--
+func Add_new_global_order(new_order Order, new_order_bool_chan chan bool, new_order_chan chan Order, new_global_order_bool_chan chan bool) {
 	new_order_floor := new_order.Floor
 	new_order_button := new_order.Button
 
@@ -227,7 +237,9 @@ func Add_new_global_order(new_order Order, new_order_bool_chan chan bool, new_or
 		if Global_order_list[i].Order_state == Inactive {
 			Global_order_list[i] = new_order
 			fmt.Println("New external order was added!")
-			go Bool_to_new_order_channel(true, new_order_bool_chan)
+			//--
+			go Bool_to_new_global_order_chan(true, new_global_order_bool_chan)
+			//go Bool_to_new_order_channel(true, new_order_bool_chan)
 			driver.Set_button_lamp(new_order.Button, new_order.Floor, global.ON)
 			break
 		}
