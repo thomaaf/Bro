@@ -33,7 +33,7 @@ type Slave_msg struct {
 	Elevator_info queue.Elev_info
 }
 
-func Network_handler() {
+func Network_handler(new_global_order_bool_chan chan bool) {
 	var new_info peers.PeerUpdate
 
 	var id string
@@ -98,6 +98,7 @@ func Network_handler() {
 						lost_peer = true
 						str_lost_ip = new_info.Lost[0]
 						lost_ip, _ = strconv.Atoi(str_lost_ip[12:])
+						fmt.Println("We lost a peer: ", lost_ip)
 					} else if len(new_info.Lost) != 0 {
 						fmt.Println("I just want to lose one person at a time, thank you.")
 						lost_peer = true
@@ -107,9 +108,14 @@ func Network_handler() {
 					//--------------
 					// redeleger part 2
 					if lost_peer {
+						fmt.Println("Yes, peer was lost")
 						for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+							fmt.Println("In for-loop to redelegate.")
 							if queue.Global_order_list[i].Assigned_to == lost_ip {
+								fmt.Println("Redelegate order: ", queue.Global_order_list[i])
 								queue.Global_order_list[i] = queue.Delegate_order(queue.Global_order_list[i])
+								//go queue.Bool_to_new_order_channel(true, new_order_bool_chan)
+								go queue.Bool_to_new_global_order_chan(true, new_global_order_bool_chan)
 							}
 						}
 					}
@@ -257,13 +263,13 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 	for i := 0; i < global.Num_elev_online; i++ {
 		if queue.Elevators_online[i].Elev_ip == msg_from_slave.Elevator_info.Elev_ip {
 			num = i
-			//Oppdaterer infoen om den nye heisen
 			queue.Elevators_online[num].Elev_last_floor = msg_from_slave.Elevator_info.Elev_last_floor
 			queue.Elevators_online[num].Elev_dir = msg_from_slave.Elevator_info.Elev_dir
 			queue.Elevators_online[num].Elev_state = msg_from_slave.Elevator_info.Elev_state
 		}
 	}
-	
+	//Oppdaterer infoen om den nye heisen
+
 	external_order_list := msg_from_slave.External_list
 	//internal_order_list := msg_from_slave.Internal_list
 	fmt.Println("Master 1")
