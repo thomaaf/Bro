@@ -283,7 +283,7 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 			//--
 			queue.Add_new_global_order(new_order, new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
 			if new_order.Assigned_to == Local_ip{
-			go queue.Bool_to_new_global_order_chan(true, new_global_order_bool_chan)
+			//go queue.Bool_to_new_global_order_chan(true, new_global_order_bool_chan)
 			}
 
 		}
