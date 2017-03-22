@@ -290,7 +290,9 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 		for j := 0; j < global.NUM_GLOBAL_ORDERS; j++ {
 			if queue.Global_order_list[i].Button == external_order_list[j].Button && queue.Global_order_list[i].Floor == external_order_list[j].Floor && queue.Global_order_list[i].Order_state != external_order_list[j].Order_state {
 				queue.Global_order_list[i].Order_state = external_order_list[i].Order_state
-				//Burde også sjekke om noe er satt til Finished og i såfall slette det???
+				if queue.Global_order_list[i].Order_state == queue.Finished {
+					queue.Delete_order(queue.Global_order_list[i])
+				}
 
 			}
 			// Skru på lamper på alle ordre som ikke er inaktiv eller finished
