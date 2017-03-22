@@ -115,7 +115,8 @@ func Network_handler(new_global_order_bool_chan chan bool) {
 								fmt.Println("Redelegate order: ", queue.Global_order_list[i])
 								queue.Global_order_list[i] = queue.Delegate_order(queue.Global_order_list[i])
 								//go queue.Bool_to_new_order_channel(true, new_order_bool_chan)
-								go queue.Bool_to_new_global_order_chan(true, new_global_order_bool_chan)
+								if queue.Global_order_list[i].Assigned_to == Local_ip{
+									go queue.Bool_to_new_global_order_chan(true, new_global_order_bool_chan)}
 							}
 						}
 					}
@@ -281,6 +282,9 @@ func Master_msg_handler(msg_from_slave Slave_msg, new_order_bool_chan chan bool,
 			new_order = queue.Delegate_order(new_order)
 			//--
 			queue.Add_new_global_order(new_order, new_order_bool_chan, new_order_chan, new_global_order_bool_chan)
+			if new_order.Assigned_to == Local_ip{
+			go queue.Bool_to_new_global_order_chan(true, new_global_order_bool_chan)
+			}
 
 		}
 	}
